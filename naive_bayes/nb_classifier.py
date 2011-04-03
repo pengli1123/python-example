@@ -2,6 +2,7 @@
 
 import sys; #sys.argv
 import re; #regex
+import math; #log, abs
 
 if len(sys.argv) != 3:
     print "Usage: nb_classifier split1.train split.test"
@@ -33,12 +34,11 @@ train_file = open(train_data, 'r');
 for file in train_file:
         file_fd = open(data_path + '/' + file.rstrip('\n'), 'r')
 
-        #words = file_fd.read().split(' ');
-        for line in file_fd:
-            words =  line.rstrip('\n').split(' ');
-            for w in words:
-                if w.isalpha(): #only add words that's are in alphabetic
-                    vocab.add(w.lower());
+        words = file_fd.read().split(' ');
+
+        for w in words:
+            if w.isalpha(): #only add words that's are in alphabetic
+                vocab.add(w.lower());
 
         #find the label 
         #this should be in step 2 but combine in here for efficiency
@@ -51,13 +51,7 @@ for file in train_file:
 train_file.close();
 
 vocab_len = len(vocab);
-print "vocab: " + str(vocab_len);
-print "total_examples: " + str(total_examples);
 
-#for voc in vocab:
-#    print voc;
-
-#exit();
 train_file = open(train_data, 'r');
 
 #calculate the P(label) and P(word|label)
@@ -66,54 +60,54 @@ for label in labels:
     text = [];
     prob[label] = len(docs[label]) / total_examples;
 
-    print "P(" + label + ") = " + str(prob[label]);
-
     for file in docs[label]:
         file_fd = open(data_path + '/' + file.rstrip('\n'), 'r');
 
-        text.extend(file_fd.read().split(' '));
+        words = file_fd.read().split(' ');
+        for w in words:
+            if w.isalpha():
+                text.append(w.lower());
+
         file_fd.close();
 
     distinct_word = len(set(text));
 
-    print "text_length " + str(len(text));
-    print "words " + str(distinct_word);
-
-    #for word in vocab:
-    #    word_time = text.count(word);
-    #    cond_prob[word + '|' + label] = (word_time + 1.0) / (distinct_word + vocab_len);
+    for word in vocab:
+        word_time = text.count(word);
+        cond_prob[word + '|' + label] = (word_time + 1.0) / (distinct_word + vocab_len);
 
 train_file.close();
 
-exit();
-
 test_file  = open(test_data, 'r');
 
+#classify the test files
 for file in test_file:
     pos = [];
 
     file_fd = open(data_path + '/' + file.rstrip('\n'), 'r');
     words = file_fd.read().split(' ');
 
-    for word in words:
-        if word in vocab:
-            pos.append(word);
+    for w in words:
+        if w.isalpha() and w.lower() in vocab:
+            pos.append(w.lower());
 
-    max = 0;
+    max = -1.0 * sys.maxint;
     ans = 'NONE';
 
     for label in labels:
-        tmp = 1;
+        tmp = 0.0;
         
         for word in pos:
-            tmp = tmp * cond_prob[word + '|' + label];
+            tmp = tmp + math.log(cond_prob[word + '|' + label]);
 
-        tmp = tmp * prob(label);
+        tmp = tmp + math.log(prob[label]);
         
+        #now that we take abs(log(x)), we want the smaller ones
         if tmp > max:
             ans = label;
             max = tmp;
 
-    print file + ' ' + ans;
+    print file.rstrip('\n') + ' ' + ans;
 
+test_file.close();
 
