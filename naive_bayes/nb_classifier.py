@@ -12,7 +12,6 @@ if len(sys.argv) != 3:
 train_data = sys.argv[1];
 test_data = sys.argv[2];
 
-#data_path = '/afs/andrew.cmu.edu/user16/pengfeil/10601/hwk8/python_example'
 data_path = './data';
 
 labels = ['atheism','auto','baseball',  'christian' , 'crypt' , 'electronics' , 'graphics' , 'guns' , 'hockey' , 'ibm' , 'mac' , 'medical' , 'mideast' , 'motorcycles' , 'politics' , 'religion' , 'sale' , 'space' , 'windows' , 'winx'];
